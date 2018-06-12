@@ -1,0 +1,24 @@
+# Eclipse
+/bin
+/.settings
+/.classpath
+/eclipse/
+
+# IDEA
+/.idea
+/classes
+*.iml
+
+# Gradle
+/build
+/.gradle
+
+# Stuff we're not allowed to upload
+/projects/
+/repo/
+/buildSrc
+/src/
+
+# Patch rejects
+/patches-/
+*.patch.rej
