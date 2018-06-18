@@ -111,10 +111,22 @@ tasks.getByName('extract' + capitalizedName + 'Resources').exclude "**/log4j2.xm
 
 // ===== DECOMPILING AND DEOBFUSCATING =====
 
-// Make the client the server
-mergeJars.dependsOn.remove downloadClient
-mergeJars.client = {mergeJars.server}
-sourceProcessJar.patches = patcher_plugin.delayedFile(Constants.MCP_PATCHES_SERVER)
+// Only decompile the right side
+if (gradle.side == 'client')
+{
+	deobfuscateJar.dependsOn.remove mergeJars
+	deobfuscateJar.dependsOn downloadClient
+	sourceProcessJar.patches = patcher_plugin.delayedFile(Constants.MCP_PATCHES_CLIENT)
+	deobfuscateJar.inJar = patcher_plugin.delayedFile(Constants.JAR_CLIENT_FRESH)
+}
+else if (gradle.side == 'server')
+{
+	// TODO: ffs half these lines don't work, fix later
+	deobfuscateJar.dependsOn.remove mergeJars
+	deobfuscateJar.dependsOn splitServerJar
+	sourceProcessJar.patches = patcher_plugin.delayedFile(Constants.MCP_PATCHES_SERVER)
+	deobfuscateJar.inJar = patcher_plugin.delayedFile(Constants.JAR_SERVER_PURE)
+}
 
 // Make decompilation as close as possible to the original MCP
 remapCleanJar.addsJavadocs = true
@@ -289,7 +301,7 @@ task('copy' + capitalizedName + 'ToSrc', type: Copy) {
 	into 'src/'
 }
 task(copyMcToSrc, type: Copy) {
-	from 'projects/${capitalizedName}/src/main/java'
+	from "projects/${capitalizedName}/src/main/java"
 	into 'src/'
 	dependsOn tasks.getByName('extract' + capitalizedName + 'Sources')
 }
@@ -313,14 +325,22 @@ clean {
 
 // ===== REMOVE UNNECESSARY TASKS =====
 
+def sideToIgnore = null
+if (gradle.side == 'client')
+	sideToIgnore = 'Server'
+else if (gradle.side == 'server')
+	sideToIgnore = 'Client'
 tasks.each
 { t ->
 	t.dependsOn.remove makeCleanStart
 	t.dependsOn.remove tasks.getByName('make' + capitalizedName + 'Start')
-	t.dependsOn.remove makeEclipseCleanRunClient
-	t.dependsOn.remove tasks.getByName('makeEclipse' + capitalizedName + 'RunClient')
-	t.dependsOn.remove makeIdeaCleanRunClient
-	t.dependsOn.remove tasks.getByName('makeIdea' + capitalizedName + 'RunClient')
+	if (sideToIgnore != null)
+	{
+		t.dependsOn.remove tasks.getByName('makeEclipseCleanRun' + sideToIgnore)
+		t.dependsOn.remove tasks.getByName('makeEclipse' + capitalizedName + 'Run' + sideToIgnore)
+		t.dependsOn.remove tasks.getByName('makeIdeaCleanRun' + sideToIgnore)
+		t.dependsOn.remove tasks.getByName('makeIdea' + capitalizedName + 'Run' + sideToIgnore)
+	}
 }
 installer.enabled = false
 installer.dependsOn.remove downloadInstaller

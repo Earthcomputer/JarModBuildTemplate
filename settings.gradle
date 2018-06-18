@@ -1,1 +1,5 @@
+// The project name
 rootProject.name = 'carpet'
+// Set to 'client' to make a client-only jar mod, 'server' to make it server-only and 'both' to make it both
+// 'both' is currently untested
+gradle.ext.side = 'server'
