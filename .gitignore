@@ -12,11 +12,12 @@
 # Gradle
 /build
 /.gradle
+/buildSrc/build
+/buildSrc/.gradle
 
 # Stuff we're not allowed to upload
 /projects/
 /repo/
-/buildSrc
 /src/
 
 # Patch rejects

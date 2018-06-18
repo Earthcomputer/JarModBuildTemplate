@@ -286,11 +286,17 @@ task('copy' + capitalizedName + 'FromSrc', type: Copy) {
 task(copyMcFromSrc, type: Copy) {
 	from('src/')
 	{
+		include 'mcp/**'
+	}
+	from('src/')
+	{
 		eachFile
 		{ file ->
 			if (!(new File('projects/Clean/src/main/java', file.getRelativePath().toString()).isFile()))
 				file.exclude()
 		}
+		exclude 'mcp/**'
+		filter StripJavadoc // so the patcher isn't bugged
 	}
 	into "projects/${capitalizedName}/src/main/java"
 	includeEmptyDirs = false

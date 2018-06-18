@@ -1,46 +1,14 @@
 --- ../src-base/minecraft/net/minecraft/command/CommandClone.java
 +++ ../src-work/minecraft/net/minecraft/command/CommandClone.java
-@@ -20,21 +20,33 @@
+@@ -51,9 +51,9 @@
+             StructureBoundingBox structureboundingbox1 = new StructureBoundingBox(blockpos2, blockpos2.func_177971_a(structureboundingbox.func_175896_b()));
+             int i = structureboundingbox.func_78883_b() * structureboundingbox.func_78882_c() * structureboundingbox.func_78880_d();
  
- public class CommandClone extends CommandBase
- {
-+    /**
-+     * Gets the name of the command
-+     */
-     public String func_71517_b()
-     {
-         return "clone";
-     }
- 
-+    /**
-+     * Return the required permission level for this command.
-+     */
-     public int func_82362_a()
-     {
-         return 2;
-     }
- 
-+    /**
-+     * Gets the usage string for the command.
-+     */
-     public String func_71518_a(ICommandSender p_71518_1_)
-     {
-         return "commands.clone.usage";
-     }
- 
-+    /**
-+     * Callback for when the command is executed
-+     */
-     public void func_184881_a(MinecraftServer p_184881_1_, ICommandSender p_184881_2_, String[] p_184881_3_) throws CommandException
-     {
-         if (p_184881_3_.length < 9)
-@@ -250,6 +262,9 @@
-         }
-     }
- 
-+    /**
-+     * Get a list of options for when the user presses the TAB key
-+     */
-     public List<String> func_184883_a(MinecraftServer p_184883_1_, ICommandSender p_184883_2_, String[] p_184883_3_, @Nullable BlockPos p_184883_4_)
-     {
-         if (p_184883_3_.length > 0 && p_184883_3_.length <= 3)
+-            if (i > 32768)
++            if (i > net.minecraft.gnembon.CarpetSettings.fillCommandLimit)
+             {
+-                throw new CommandException("commands.clone.tooManyBlocks", new Object[] {i, Integer.valueOf(32768)});
++                throw new CommandException("commands.clone.tooManyBlocks", new Object[] {i, Integer.valueOf(net.minecraft.gnembon.CarpetSettings.fillCommandLimit)});
+             }
+             else
+             {
