@@ -315,15 +315,6 @@ task(copyMcToSrc, type: Copy) {
 tasks.getByName('makeJar' + capitalizedName).dependsOn tasks.getByName('copy' + capitalizedName + 'FromSrc'), copyMcFromSrc
 genIdeProjects.dependsOn tasks.getByName('copy' + capitalizedName + 'ToSrc'), copyMcToSrc
 
-// Use code injection to add [project]Src/ to the source dirs
-String injected = """${PatcherConstants.JAR_PROJECT_RECOMPILED.substring(PatcherConstants.DIR_PROJECT_CACHE.length() + 1)}";
-println '====='
-sourceSets.main.java.srcDirs.each {println it}
-def hacky_empty_str = "
-"""
-injected = injected.substring(0, injected.length() - 1)
-tasks.getByName('makeJar' + capitalizedName).addReplacement('@JAR_NAME@', injected)
-
 clean {
 	delete 'src'
 }
