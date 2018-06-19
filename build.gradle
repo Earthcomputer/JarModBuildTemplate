@@ -34,6 +34,7 @@ import de.undercouch.gradle.tasks.download.Download
 import groovy.io.FileType
 import java.text.SimpleDateFormat
 import java.util.zip.ZipFile
+import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.gradle.common.Constants
 import net.minecraftforge.gradle.patcher.PatcherConstants
 import net.minecraftforge.gradle.patcher.TaskReobfuscate
@@ -105,7 +106,8 @@ task('setup' + capitalizedName) {
 // ===== MODIFY EXISTING TASKS =====
 
 // Exclude Forge files
-tasks.getByName('extract' + capitalizedName + 'Sources').exclude '**/SideOnly.java', '**/Side.java'
+if (gradle.side == 'client' || gradle.side == 'server')
+	tasks.getByName('extract' + capitalizedName + 'Sources').exclude 'net/minecraftforge/fml/relauncher/SideOnly.java', 'net/minecraftforge/fml/relauncher/Side.java'
 tasks.getByName('extract' + capitalizedName + 'Resources').exclude "**/log4j2.xml"
 
 
@@ -223,13 +225,16 @@ task(reobfClean, type: TaskReobfuscate)
 
 // Do the output Jar ourselves because the build-in ForgeGradle version assumes we have permission
 // to redistribute the MCP mappings (we don't)
-task(project.name + 'OutputJar', type: Zip)
+// Also, we do this for each side when both sides are enabled, filtering out using SideOnly
+void configureOutputJar(Zip task, Side side)
 {
-	from(zipTree(patcher_plugin.delayedFile(PatcherConstants.JAR_OBFUSCATED)))
+	task.from(zipTree(patcher_plugin.delayedFile(PatcherConstants.JAR_OBFUSCATED)))
 	{
 		eachFile
 		{ moddedFile ->
 			def entryName = moddedFile.getRelativePath().toString()
+			def moddedJar = new ZipFile(file(patcher_plugin.delayedFile(PatcherConstants.JAR_OBFUSCATED)))
+			def moddedEntry = moddedJar.getEntry entryName
 			if (!entryName.contains('/') || entryName.startsWith('net/minecraft/')) // i.e. was this file in vanilla?
 			{
 				if (!entryName.endsWith('.class'))
@@ -246,21 +251,54 @@ task(project.name + 'OutputJar', type: Zip)
 					}
 					else
 					{
-						def moddedJar = new ZipFile(file(patcher_plugin.delayedFile(PatcherConstants.JAR_OBFUSCATED)))
-						def moddedEntry = moddedJar.getEntry entryName
 						if (IOUtils.contentEquals(vanillaJar.getInputStream(vanillaEntry), moddedJar.getInputStream(moddedEntry)))
 							moddedFile.exclude()
 					}
 				}
 			}
+			if (side != null)
+				if (!SideFilter.matchesSide(moddedJar.getInputStream(moddedEntry), side))
+				 moddedFile.exclude()
 		}
 	}
 	
-	archiveName = "${capitalizedName}_v${project.version}.zip"
-	destinationDir = outputJar.destinationDir
-	includeEmptyDirs = false
+	exclude 'net/minecraftforge/fml/relauncher/Side.class', 'net/minecraftforge/fml/relauncher/SideOnly.class'
+	
+	if (side != null)
+	{
+		task.filter(SideFilter, [side: side, fileSupplier: { filename ->
+			def entryName = filename + '.class'
+			def moddedJar = new ZipFile(file(patcher_plugin.delayedFile(PatcherConstants.JAR_OBFUSCATED)))
+			def moddedEntry = moddedJar.getEntry entryName
+			return moddedJar.getInputStream(moddedEntry)
+		}])
+		task.filteringCharset = 'US-ASCII'
+	}
+	
+	if (side == null)
+		task.archiveName = "${capitalizedName}_v${project.version}.zip"
+	else
+		task.archiveName = "${capitalizedName}_v${project.version}_${side.name().toLowerCase(Locale.ENGLISH)}.zip"
+	task.destinationDir = outputJar.destinationDir
+	task.includeEmptyDirs = false
 	
 	dependsOn reobfClean
+}
+def outputJarTasks = []
+if (gradle.side == 'client' || gradle.side == 'server')
+{
+	def outputJarTask = task(project.name + 'OutputJar', type: Zip)
+	configureOutputJar(outputJarTask, null)
+	outputJarTasks += outputJarTask
+}
+else
+{
+	def outputJarTask = task(project.name + 'OutputJarClient', type: Zip)
+	configureOutputJar(outputJarTask, Side.CLIENT)
+	outputJarTasks += outputJarTask
+	outputJarTask = task(project.name + 'OutputJarServer', type: Zip)
+	configureOutputJar(outputJarTask, Side.SERVER)
+	outputJarTasks += outputJarTask
 }
 // Make [project]OutputJar replace outputJar
 tasks.each
@@ -268,7 +306,7 @@ tasks.each
 	if (t.dependsOn.contains(outputJar))
 	{
 		t.dependsOn.remove outputJar
-		t.dependsOn tasks.getByName(project.name + 'OutputJar')
+		t.dependsOn outputJarTasks
 	}
 }
 outputJar.destinationDir = file('build/localCache/outputTrash')

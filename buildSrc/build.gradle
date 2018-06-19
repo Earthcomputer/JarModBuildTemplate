@@ -1,0 +1,12 @@
+
+apply plugin: 'groovy'
+
+repositories {
+	mavenCentral()
+	maven {url 'http://files.minecraftforge.net/maven'}
+}
+
+dependencies {
+	compile 'org.ow2.asm:asm-debug-all:5.2'
+	compile 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+}
