@@ -226,7 +226,7 @@ task(reobfClean, type: TaskReobfuscate)
 // Do the output Jar ourselves because the build-in ForgeGradle version assumes we have permission
 // to redistribute the MCP mappings (we don't)
 // Also, we do this for each side when both sides are enabled, filtering out using SideOnly
-void configureOutputJar(Zip task, Side side)
+void configureOutputJar(def patcher_plugin, def capitalizedName, Zip task, Side side)
 {
 	task.from(zipTree(patcher_plugin.delayedFile(PatcherConstants.JAR_OBFUSCATED)))
 	{
@@ -262,7 +262,7 @@ void configureOutputJar(Zip task, Side side)
 		}
 	}
 	
-	exclude 'net/minecraftforge/fml/relauncher/Side.class', 'net/minecraftforge/fml/relauncher/SideOnly.class'
+	task.exclude 'net/minecraftforge/fml/relauncher/Side.class', 'net/minecraftforge/fml/relauncher/SideOnly.class'
 	
 	if (side != null)
 	{
@@ -282,22 +282,22 @@ void configureOutputJar(Zip task, Side side)
 	task.destinationDir = outputJar.destinationDir
 	task.includeEmptyDirs = false
 	
-	dependsOn reobfClean
+	task.dependsOn reobfClean
 }
 def outputJarTasks = []
 if (gradle.side == 'client' || gradle.side == 'server')
 {
 	def outputJarTask = task(project.name + 'OutputJar', type: Zip)
-	configureOutputJar(outputJarTask, null)
+	configureOutputJar(patcher_plugin, capitalizedName, outputJarTask, null)
 	outputJarTasks += outputJarTask
 }
 else
 {
 	def outputJarTask = task(project.name + 'OutputJarClient', type: Zip)
-	configureOutputJar(outputJarTask, Side.CLIENT)
+	configureOutputJar(patcher_plugin, capitalizedName, outputJarTask, Side.CLIENT)
 	outputJarTasks += outputJarTask
 	outputJarTask = task(project.name + 'OutputJarServer', type: Zip)
-	configureOutputJar(outputJarTask, Side.SERVER)
+	configureOutputJar(patcher_plugin, capitalizedName, outputJarTask, Side.SERVER)
 	outputJarTasks += outputJarTask
 }
 // Make [project]OutputJar replace outputJar
