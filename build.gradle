@@ -129,62 +129,68 @@ else if (gradle.side == 'server')
 }
 
 // Make decompilation as close as possible to the original MCP
-remapCleanJar.addsJavadocs = true
-tasks.getByName('remap' + capitalizedName + 'Jar').addsJavadocs = true
+if (gradle.useJavadocs)
+{
+	remapCleanJar.addsJavadocs = true
+	tasks.getByName('remap' + capitalizedName + 'Jar').addsJavadocs = true
+}
 
-task(downloadMcp, type: Download) {
-	src 'http://www.modcoderpack.com/files/mcp940.zip'
-	dest 'build/localCache/downloadMcp/mcp940.zip'
-}
-task(extractAstyle, type: Copy) {
-	from(zipTree('build/localCache/downloadMcp/mcp940.zip'))
-	{
-		include 'runtime/bin/astyle.exe'
-		include 'runtime/bin/astyle-osx'
+if (gradle.useAstyle)
+{
+	task(downloadMcp, type: Download) {
+		src 'http://www.modcoderpack.com/files/mcp940.zip'
+		dest 'build/localCache/downloadMcp/mcp940.zip'
 	}
-	into 'build/localCache/mcp'
-	dependsOn downloadMcp
-}
-sourceProcessJar.outJar = 'build/localCache/sourceProcessJar/sourceProcessed.jar'
-task(extractSrcForAstyle, type: Copy) {
-	from zipTree('build/localCache/sourceProcessJar/sourceProcessed.jar')
-	into 'build/localCache/astyle'
-	dependsOn sourceProcessJar
-}
-task(runAstyle, type: Exec) {
-	def extra_args = ['--suffix=none', '--quiet', '--recursive',
-			'--options=' + patcher_plugin.delayedFile(Constants.MCP_DATA_STYLE), 'build/localCache/astyle/*.java']
-	switch (OS.CURRENT)
-	{
-		case OS.WINDOWS:
-			commandLine(['"build/localCache/mcp/runtime/bin/astyle.exe"'] + extra_args)
-			break
-		case OS.OSX:
-			commandLine(['build/localCache/mcp/runtime/bin/astyle-osx'] + extra_args)
-			break
-		default:
-			commandLine(['astyle'] + extra_args)
-			break
+	task(extractAstyle, type: Copy) {
+		from(zipTree('build/localCache/downloadMcp/mcp940.zip'))
+		{
+			include 'runtime/bin/astyle.exe'
+			include 'runtime/bin/astyle-osx'
+		}
+		into 'build/localCache/mcp'
+		dependsOn downloadMcp
 	}
-	
-	dependsOn extractSrcForAstyle
-	if (OS.CURRENT == OS.WINDOWS || OS.CURRENT == OS.OSX)
-		dependsOn extractAstyle
+	sourceProcessJar.outJar = 'build/localCache/sourceProcessJar/sourceProcessed.jar'
+	task(extractSrcForAstyle, type: Copy) {
+		from zipTree('build/localCache/sourceProcessJar/sourceProcessed.jar')
+		into 'build/localCache/astyle'
+		dependsOn sourceProcessJar
+	}
+	task(runAstyle, type: Exec) {
+		def extra_args = ['--suffix=none', '--quiet', '--recursive',
+				'--options=' + patcher_plugin.delayedFile(Constants.MCP_DATA_STYLE), 'build/localCache/astyle/*.java']
+		switch (OS.CURRENT)
+		{
+			case OS.WINDOWS:
+				commandLine(['"build/localCache/mcp/runtime/bin/astyle.exe"'] + extra_args)
+				break
+			case OS.OSX:
+				commandLine(['build/localCache/mcp/runtime/bin/astyle-osx'] + extra_args)
+				break
+			default:
+				commandLine(['astyle'] + extra_args)
+				break
+		}
+		
+		dependsOn extractSrcForAstyle
+		if (OS.CURRENT == OS.WINDOWS || OS.CURRENT == OS.OSX)
+			dependsOn extractAstyle
+	}
+	task(zipAstyledSrc, type: Zip) {
+		from('build/localCache/astyle')
+		exclude '**/*.orig'
+		
+		def destFile = file(patcher_plugin.delayedFile(PatcherConstants.JAR_DECOMP_POST))
+		destinationDir = destFile.getParentFile()
+		archiveName = destFile.getName()
+		includeEmptyDirs = false
+		
+		dependsOn runAstyle
+	}
+	remapCleanJar.dependsOn zipAstyledSrc
+	tasks.getByName('patch' + capitalizedName + 'Jar').dependsOn zipAstyledSrc
+	tasks.getByName('remap' + capitalizedName + 'Jar').dependsOn zipAstyledSrc
 }
-task(zipAstyledSrc, type: Zip) {
-	from('build/localCache/astyle')
-	exclude '**/*.orig'
-	
-	def destFile = file(patcher_plugin.delayedFile(PatcherConstants.JAR_DECOMP_POST))
-	destinationDir = destFile.getParentFile()
-	archiveName = destFile.getName()
-	includeEmptyDirs = false
-	
-	dependsOn runAstyle
-}
-remapCleanJar.dependsOn zipAstyledSrc
-tasks.getByName('patch' + capitalizedName + 'Jar').dependsOn zipAstyledSrc
-tasks.getByName('remap' + capitalizedName + 'Jar').dependsOn zipAstyledSrc
 
 
 // ===== RECOMPILING AND REOBFUSCATING =====
@@ -296,7 +302,8 @@ task(copyMcFromSrc, type: Copy) {
 				file.exclude()
 		}
 		exclude 'mcp/**'
-		filter StripJavadoc // so the patcher isn't bugged
+		if (gradle.useJavadocs)
+			filter StripJavadoc // so the patcher isn't bugged
 	}
 	into "projects/${capitalizedName}/src/main/java"
 	includeEmptyDirs = false
