@@ -85,7 +85,7 @@ minecraft
 processJson
 {
 	// also used to download assets
-	releaseJson = 'jsons/${minecraft.version}-rel.json'
+	releaseJson = "jsons/${minecraft.version}-rel.json"
 }
 
 
@@ -256,9 +256,10 @@ void configureOutputJar(def patcher_plugin, def capitalizedName, Zip task, Side 
 					}
 				}
 			}
-			if (side != null)
-				if (!SideFilter.matchesSide(moddedJar.getInputStream(moddedEntry), side))
-				 moddedFile.exclude()
+			if (entryName.endsWith('.class'))
+				if (side != null)
+					if (!SideFilter.matchesSide(moddedJar.getInputStream(moddedEntry), side))
+						moddedFile.exclude()
 		}
 	}
 	
@@ -266,12 +267,12 @@ void configureOutputJar(def patcher_plugin, def capitalizedName, Zip task, Side 
 	
 	if (side != null)
 	{
-		task.filter(SideFilter, [side: side, fileSupplier: { filename ->
+		task.filter([side: side, fileSupplier: { filename ->
 			def entryName = filename + '.class'
 			def moddedJar = new ZipFile(file(patcher_plugin.delayedFile(PatcherConstants.JAR_OBFUSCATED)))
 			def moddedEntry = moddedJar.getEntry entryName
 			return moddedJar.getInputStream(moddedEntry)
-		}])
+		}], SideFilter)
 		task.filteringCharset = 'US-ASCII'
 	}
 	

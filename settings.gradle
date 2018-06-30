@@ -3,7 +3,7 @@ rootProject.name = 'carpet'
 
 // Set to 'client' to make a client-only jar mod, 'server' to make it server-only and 'both' to make it both
 // 'both' is currently untested
-gradle.ext.side = 'server'
+gradle.ext.side = 'both'
 
 // Whether the source should contain javadocs. false is recommended, set to true for compatibility with MCP.
 gradle.ext.useJavadocs = true

@@ -27,7 +27,7 @@ class SideFilter extends FilterReader {
 					return null
 				}
 			}
-		})
+		}, ClassReader.SKIP_CODE)
 		return ret.val
 	}
 	
@@ -68,6 +68,9 @@ class SideFilter extends FilterReader {
 	}
 	
 	private void filterClass(ClassNode node) {
+		// remove sideonly annotations
+		checkAnnotations(node.visibleAnnotations)
+		
 		// filter fields
 		if (node.fields != null) {
 			def fieldItr = node.fields.iterator()
@@ -100,13 +103,17 @@ class SideFilter extends FilterReader {
 	}
 	
 	private boolean checkAnnotations(List<AnnotationNode> annotations) {
-		for (def ann : annotations) {
+		def annItr = annotations.iterator()
+		while (annItr.hasNext()) {
+			def ann = annItr.next()
 			if (ann.desc == 'Lnet/minecraftforge/fml/relauncher/SideOnly;') {
 				for (int i = 0; i < ann.values.size(); i += 2) {
 					if (ann.values.get(i) == 'value') {
 						String[] val = ann.values.get(i + 1) as String[]
-						if (val[0] == 'Lnet/minecraftforge/fml/relauncher/Side;')
+						if (val[0] == 'Lnet/minecraftforge/fml/relauncher/Side;') {
+							annItr.remove()
 							return val[1] == side.name()
+						}
 					}
 				}
 			}

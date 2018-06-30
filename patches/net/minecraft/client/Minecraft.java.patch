@@ -1,0 +1,11 @@
+--- ../src-base/minecraft/net/minecraft/client/Minecraft.java
++++ ../src-work/minecraft/net/minecraft/client/Minecraft.java
+@@ -345,7 +345,7 @@
+         this.field_71449_j = p_i45547_1_.field_178745_a.field_178752_a;
+         field_147123_G.info("Setting user: {}", (Object)this.field_71449_j.func_111285_a());
+         field_147123_G.debug("(Session ID is {})", (Object)this.field_71449_j.func_111286_b());
+-        this.field_71459_aj = p_i45547_1_.field_178741_d.field_178756_a;
++        this.field_71459_aj = false; // this is a totally legit change
+         this.field_71443_c = p_i45547_1_.field_178743_b.field_178764_a > 0 ? p_i45547_1_.field_178743_b.field_178764_a : 1;
+         this.field_71440_d = p_i45547_1_.field_178743_b.field_178762_b > 0 ? p_i45547_1_.field_178743_b.field_178762_b : 1;
+         this.field_71436_X = p_i45547_1_.field_178743_b.field_178764_a;

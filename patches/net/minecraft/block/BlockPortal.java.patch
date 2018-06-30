@@ -1,0 +1,11 @@
+--- ../src-base/minecraft/net/minecraft/block/BlockPortal.java
++++ ../src-work/minecraft/net/minecraft/block/BlockPortal.java
+@@ -64,7 +64,7 @@
+     {
+         super.func_180650_b(p_180650_1_, p_180650_2_, p_180650_3_, p_180650_4_);
+ 
+-        if (p_180650_1_.field_73011_w.func_76569_d() && p_180650_1_.func_82736_K().func_82766_b("doMobSpawning") && p_180650_4_.nextInt(2000) < p_180650_1_.func_175659_aa().func_151525_a())
++        if (p_180650_1_.field_73011_w.func_76569_d() && p_180650_1_.func_82736_K().func_82766_b("doMobSpawning") && p_180650_4_.nextInt(net.minecraft.gnembon.CarpetSettings.fillCommandLimit) < p_180650_1_.func_175659_aa().func_151525_a()) /* lazy */
+         {
+             int i = p_180650_2_.func_177956_o();
+             BlockPos blockpos;
