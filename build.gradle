@@ -90,8 +90,6 @@ processJson
 
 // ===== TOP-LEVEL TASKS =====
 
-// There must be no new line before braces for tasks or compile errors happen :,(
-
 /**
  * setup[Project] is used after you pull from the remote repository
  * 1. git pull ...
@@ -100,6 +98,12 @@ processJson
 task('setup' + capitalizedName) {
 	dependsOn 'setup'
 }
+
+/**
+ * createRelease creates a ZIP file with all the modified classes
+ */
+task('createRelease')
+project.afterEvaluate { createRelease.dependsOn tasks.getByName(project.name + 'OutputJar') }
 
 
 // ===== MODIFY EXISTING TASKS =====
