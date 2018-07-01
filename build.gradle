@@ -19,14 +19,14 @@ buildscript
 		classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
 		classpath 'de.undercouch:gradle-download-task:3.4.3'
 		classpath 'commons-io:commons-io:2.6'
-		classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.3" // For debug purposes
+		//classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.3" // For debug purposes
 	}
 }
 apply plugin: 'java'
 apply plugin: 'maven'
 def patcher_plugin = plugins.apply 'net.minecraftforge.gradle.patcher'
 apply plugin: 'de.undercouch.download'
-apply plugin: "com.dorongold.task-tree" // For debug purposes
+//apply plugin: "com.dorongold.task-tree" // For debug purposes
 
 
 import com.google.common.io.Resources
