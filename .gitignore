@@ -20,7 +20,19 @@
 /projects/
 /repo/
 /src/
+/resources/
 
 # Patch rejects
 /patches-/
 *.patch.rej
+
+# MC stuff
+banned-ips.json
+banned-players.json
+eula.txt
+ops.json
+server.properties
+usercache.json
+whitelist.json
+logs/
+world/

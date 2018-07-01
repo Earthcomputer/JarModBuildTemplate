@@ -53,6 +53,7 @@ def capitalizedName = '' + Character.toUpperCase(project.name.charAt(0)) + proje
 
 allprojects {
 	sourceSets.main.java.srcDirs = ['src']
+	sourceSets.main.resources.srcDirs = ['resources']
 	repositories {
 		mavenCentral()
 		maven {url 'https://files.minecraftforge.net/maven'}
@@ -118,7 +119,6 @@ project.afterEvaluate { createRelease.dependsOn tasks.getByName(project.name + '
 
 // Exclude Forge files
 tasks.getByName('extract' + capitalizedName + 'Sources').exclude '**/SideOnly.java', '**/Side.java'
-tasks.getByName('extract' + capitalizedName + 'Resources').exclude "**/log4j2.xml"
 
 
 // ===== DECOMPILING AND DEOBFUSCATING =====
@@ -314,10 +314,17 @@ task(copyMcToSrc, type: Copy) {
 	from "projects/${capitalizedName}/src/main/java"
 	into 'src/'
 	dependsOn tasks.getByName('extract' + capitalizedName + 'Sources')
+	includeEmptyDirs = false
+}
+task(copyResources, type: Copy) {
+	from "projects/${capitalizedName}/src/main/resources"
+	into 'resources/'
+	dependsOn tasks.getByName('extract' + capitalizedName + 'Resources')
+	includeEmptyDirs = false
 }
 
 tasks.getByName('makeJar' + capitalizedName).dependsOn tasks.getByName('copy' + capitalizedName + 'FromSrc'), copyMcFromSrc
-genIdeProjects.dependsOn tasks.getByName('copy' + capitalizedName + 'ToSrc'), copyMcToSrc
+genIdeProjects.dependsOn tasks.getByName('copy' + capitalizedName + 'ToSrc'), copyMcToSrc, copyResources
 
 clean {
 	delete 'src'
