@@ -15,6 +15,10 @@ A build system for Jar Mods, modernized to use ForgeGradle rather than MCP.
 - Copy all the MCP code, along with your modifications and new classes, and paste it into the `src` directory.
 - Run `gradlew genPatches` in the root project directory.
 
+### Using an IDE
+- To use Eclipse, run `gradlew eclipse`, then import the project in Eclipse.
+- To use Intellij, run `gradlew idea`, then import the project in Intellij.
+
 ## Using the build system
 Edit the files in the `src` folder, like you would for a normal project. The only special things you have to do are as follows:
 ### To generate patch files so they show up in version control

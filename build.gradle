@@ -24,6 +24,8 @@ buildscript
 }
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
 def patcher_plugin = plugins.apply 'net.minecraftforge.gradle.patcher'
 apply plugin: 'de.undercouch.download'
 //apply plugin: "com.dorongold.task-tree" // For debug purposes
@@ -51,6 +53,12 @@ def capitalizedName = '' + Character.toUpperCase(project.name.charAt(0)) + proje
 
 allprojects {
 	sourceSets.main.java.srcDirs = ['src']
+	repositories {
+		mavenCentral()
+		maven {url 'https://files.minecraftforge.net/maven'}
+		maven {url 'https://libraries.minecraft.net/'}
+	}
+	configurations.compile.extendsFrom configurations.forgeGradleMcDeps
 }
 
 // ForgeGradle settings
