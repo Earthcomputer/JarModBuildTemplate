@@ -230,28 +230,14 @@ task(project.name + 'OutputJar', type: Zip)
 		eachFile
 		{ moddedFile ->
 			def entryName = moddedFile.getRelativePath().toString()
-			if (!entryName.contains('/') || entryName.startsWith('net/minecraft/')) // i.e. was this file in vanilla?
+			def vanillaJar = new ZipFile(file('build/localCache/reobfClean/reobfuscated.jar'))
+			def vanillaEntry = vanillaJar.getEntry entryName
+			if (vanillaEntry != null)
 			{
-				if (!entryName.endsWith('.class'))
-				{
+				def moddedJar = new ZipFile(file(patcher_plugin.delayedFile(PatcherConstants.JAR_OBFUSCATED)))
+				def moddedEntry = moddedJar.getEntry entryName
+				if (IOUtils.contentEquals(vanillaJar.getInputStream(vanillaEntry), moddedJar.getInputStream(moddedEntry)))
 					moddedFile.exclude()
-				}
-				else
-				{
-					def vanillaJar = new ZipFile(file('build/localCache/reobfClean/reobfuscated.jar'))
-					def vanillaEntry = vanillaJar.getEntry entryName
-					if (vanillaEntry == null)
-					{
-						moddedFile.exclude()
-					}
-					else
-					{
-						def moddedJar = new ZipFile(file(patcher_plugin.delayedFile(PatcherConstants.JAR_OBFUSCATED)))
-						def moddedEntry = moddedJar.getEntry entryName
-						if (IOUtils.contentEquals(vanillaJar.getInputStream(vanillaEntry), moddedJar.getInputStream(moddedEntry)))
-							moddedFile.exclude()
-					}
-				}
 			}
 		}
 	}
@@ -260,8 +246,9 @@ task(project.name + 'OutputJar', type: Zip)
 	destinationDir = outputJar.destinationDir
 	includeEmptyDirs = false
 	
-	dependsOn reobfClean
+	dependsOn reobfClean, reobfuscate
 }
+
 // Make [project]OutputJar replace outputJar
 tasks.each
 { t ->
@@ -302,8 +289,6 @@ task(copyMcFromSrc, type: Copy) {
 				file.exclude()
 		}
 		exclude 'mcp/**'
-		if (gradle.useJavadocs)
-			filter StripJavadoc // so the patcher isn't bugged
 	}
 	into "projects/${capitalizedName}/src/main/java"
 	includeEmptyDirs = false
@@ -324,6 +309,34 @@ genIdeProjects.dependsOn tasks.getByName('copy' + capitalizedName + 'ToSrc'), co
 
 clean {
 	delete 'src'
+}
+
+
+// ===== PATCH FIXES =====
+
+if (gradle.useJavadocs)
+{
+	def retromap = tasks.getByName('retromapMc' + capitalizedName)
+	
+	task(stripJavadoc, type: Zip) {
+		from(zipTree('build/localCache/retromapped/retromapped.zip')) {
+			include '**/*.java'
+			exclude 'mcp/**'
+			filter StripJavadoc
+		}
+		from(zipTree('build/localCache/retromapped/retromapped.zip')) {
+			exclude '**/*.java'
+		}
+		from(zipTree('build/localCache/retromapped/retromapped.zip')) {
+			include 'mcp/**'
+		}
+		archiveName = file(retromap.out).getName()
+		destinationDir = file(retromap.out).getParentFile()
+		dependsOn retromap
+	}
+	
+	retromap.out = 'build/localCache/retromapped/retromapped.zip'
+	project.afterEvaluate { tasks.getByName('gen' + capitalizedName + 'Patches').dependsOn stripJavadoc }
 }
 
 
