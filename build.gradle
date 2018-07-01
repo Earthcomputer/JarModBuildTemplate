@@ -46,7 +46,7 @@ import org.apache.commons.io.IOUtils
 
 // Set basic project properties
 group = name
-version = new SimpleDateFormat('yy_MM_dd').format(new Date())
+version = gradle.modVersion
 def capitalizedName = '' + Character.toUpperCase(project.name.charAt(0)) + project.name.substring(1)
 
 allprojects {
@@ -56,8 +56,8 @@ allprojects {
 // ForgeGradle settings
 minecraft
 {
-	version = '1.12'
-	mappings = 'snapshot_20161116' // Same as MCP 4.10
+	version = gradle.mcVersion
+	mappings = gradle.mappings
 	workspaceDir = 'projects'
 	// versionJson is used to download assets because ForgeGradle insists
 	versionJson = "jsons/${minecraft.version}-dev.json"
