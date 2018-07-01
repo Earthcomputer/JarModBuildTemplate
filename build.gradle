@@ -84,7 +84,7 @@ minecraft
 processJson
 {
 	// also used to download assets
-	releaseJson = 'jsons/${minecraft.version}-rel.json'
+	releaseJson = "jsons/${minecraft.version}-rel.json"
 }
 
 
@@ -329,6 +329,7 @@ clean {
 
 // ===== REMOVE UNNECESSARY TASKS =====
 
+// Again, half these lines don't work either, ffs
 def sideToIgnore = null
 if (gradle.side == 'client')
 	sideToIgnore = 'Server'
