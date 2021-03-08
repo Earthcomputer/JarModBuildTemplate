@@ -34,5 +34,6 @@ ops.json
 server.properties
 usercache.json
 whitelist.json
-logs/
-world/
+/logs/
+/world/
+/run/
